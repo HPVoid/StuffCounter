@@ -7,6 +7,11 @@ import datetime
 class App:
     def __init__(self):
 
+        #main tkinter window
+        self.root = Tk()
+        self.root.title("Counter")
+        Label(self.root, text="         Count Things:         ", font="none 30 bold").pack(padx=5)
+
         #open profiles on startup
         file1 = open("profile_dict.txt","r")
         self.profile_dict = eval(file1.read())
@@ -21,10 +26,17 @@ class App:
         self.click_count_l = int(click_count_list[0])
         self.click_count_r = int(click_count_list[1])
 
-        #main tkinter window
-        self.root = Tk()
-        self.root.title("Counter")
-        Label(self.root, text="         Count Things:         ", font="none 30 bold").pack(padx=5)
+        #Tkinter variables for checkboxes
+        self.var_start_active = IntVar()
+        self.var_auto_start = IntVar()
+        self.var_auto_export = IntVar()
+
+        #open the state of checkboxes on startup
+        file3 = open("state.txt","r")
+        file3_str = file3.read()
+        self.var_start_active.set(int(file3_str[0]))
+        self.var_auto_start.set(int(file3_str[1]))
+        self.var_auto_export.set(int(file3_str[2]))
 
         #Frame for the counter profiles
         self.frame_just_count = Frame(self.root, bd=3, relief=RIDGE)
@@ -46,10 +58,6 @@ class App:
 
         self.error_window = None
 
-        #Tkinter variables for checkboxes
-        self.var_start_active = IntVar()
-        self.var_auto_start = IntVar()
-        self.var_auto_export = IntVar()
 
 
         #Frame for click counter
@@ -63,9 +71,9 @@ class App:
         self.export_click = Button(self.frame_special, text="Export", command = self.click_export)
         self.export_click.grid(row=1, column=2, sticky=E, padx=5, pady=5)
         self.label_3 = Label(self.frame_special, text="LMB: " + str(self.click_count_l), font="none 11 bold")
-        self.label_3.grid(row=1, column=4, sticky=E)
+        self.label_3.grid(row=1, column=3, sticky=E)
         self.label_4 = Label(self.frame_special, text="RMB: " + str(self.click_count_r), font="none 11 bold")
-        self.label_4.grid(row=1, column=3, sticky=E)
+        self.label_4.grid(row=1, column=4, sticky=E)
         self.start_activ = Checkbutton(self.frame_special, text="Start activated", variable=self.var_start_active, command=self.set_start_active)
         self.start_activ.grid(row=2, column=0, sticky=W)
         self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows", variable=self.var_auto_start, command=self.set_auto_start)
@@ -73,14 +81,38 @@ class App:
         self.auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export)
         self.auto_export.grid(row=4, column=0, sticky=W)
 
+        self.start_active()
+
+    def start_active(self):
+        if self.var_start_active.get() == 1:
+            self.click_counter()
+
     def set_start_active(self):
-        print(self.var_start_active.get())
+        file3 = open("state.txt","w")
+        file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
+        file3.close()
 
     def set_auto_start(self):
-        print(self.var_auto_start.get())
+        file3 = open("state.txt","w")
+        file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
+        file3.close()
+
+
+
+
+
+
+
+
+
+
+
+
 
     def set_auto_export(self):
-        print(self.var_auto_export.get())
+        file3 = open("state.txt","w")
+        file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
+        file3.close()
 
     def click_counter(self):
 
