@@ -3,6 +3,13 @@ from counterprofile1 import CounterProfile
 from profile_frame import ProfileFrame
 import win32api
 import datetime
+import winreg as reg
+import os
+import getpass
+
+
+
+
 
 class App:
     def __init__(self):
@@ -98,15 +105,25 @@ class App:
         file3.close()
 
 
+        USER_NAME = getpass.getuser()
+         # in python __file__ is the instant of
+         # file path where it was executed
+         # so if it was executed from desktop,
+         # then __file__ will be
+         # c:\users\current_user\desktop
+        #path = os.path.dirname(os.path.realpath(__file__))
+
+         # name of the python file with extension
+        #filename="counter_2.py"
+
+         # joins the file name to end of path address
+        #address=path+filename
 
 
-
-
-
-
-
-
-
+        file_path = os.path.dirname(os.path.realpath(__file__)) + "\counter_2.py"
+        bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
+        with open(bat_path + '\\' + "open.bat", "w+") as bat_file:
+            bat_file.write(r'start "" %s' % file_path)
 
 
     def set_auto_export(self):
