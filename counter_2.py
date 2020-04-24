@@ -21,8 +21,7 @@ class App:
         self.root = Tk()
         self.root.title("Counter")
 
-        label_1 = Label(self.root, text="         Count Things:         ", font="none 30 bold")
-        label_1.pack(padx=5)
+        Label(self.root, text="         Count Things:         ", font="none 30 bold").pack(padx=5)
 
         self.frame_just_count = Frame(self.root, bd=3, relief=RIDGE)
         self.frame_just_count.pack(fill=X)
@@ -47,18 +46,25 @@ class App:
 
         self.frame_special = Frame(self.root, bd=3, relief=RIDGE)
         self.frame_special.pack(fill=X)
-        label_2 = Label(self.frame_special, text="Some other stuff regarding counting:", font="none 11 bold").pack(anchor = "w", padx=5)
+        Label(self.frame_special, text="Click counter:", font="none 11 bold").grid(row=0, column=0, sticky=W, padx=5)
         self.click = Button(self.frame_special, text="Activate click counter", command = self.click_counter, bg="white", width=17)
-        self.click.pack(anchor="w", pady=5, padx=5, side=LEFT)
+        self.click.grid(row=1, column=0, sticky=W, padx=5, pady=5)
         self.reset = Button(self.frame_special, text="Reset", command = self.sure)
-        self.reset.pack(pady=5, padx=5, side=LEFT)
+        self.reset.grid(row=1, column=1, sticky=E, padx=5, pady=5)
         self.export_click = Button(self.frame_special, text="Export", command = self.click_export)
-        self.export_click.pack(side=LEFT)
+        self.export_click.grid(row=1, column=2, sticky=E, padx=5, pady=5)
 
-        self.label_4 = Label(self.frame_special, text="RMB: " + str(self.click_count_r), font="none 11 bold")
-        self.label_4.pack(side=RIGHT, padx=5)
         self.label_3 = Label(self.frame_special, text="LMB: " + str(self.click_count_l), font="none 11 bold")
-        self.label_3.pack(side=RIGHT, padx=5)
+        self.label_3.grid(row=1, column=4, sticky=E)
+        self.label_4 = Label(self.frame_special, text="RMB: " + str(self.click_count_r), font="none 11 bold")
+        self.label_4.grid(row=1, column=3, sticky=E)
+
+        self.start_activ = Checkbutton(self.frame_special, text="Start activated")
+        self.start_activ.grid(row=2, column=0, sticky=W)
+        self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows")
+        self.auto_start.grid(row=3, column=0, sticky=W)
+        self.auto_export = Checkbutton(self.frame_special, text="Automatic export")
+        self.auto_export.grid(row=4, column=0, sticky=W)
 
     def click_counter(self):
 
