@@ -7,43 +7,52 @@ import datetime
 class App:
     def __init__(self):
 
+        #open profiles on startup
         file1 = open("profile_dict.txt","r")
         self.profile_dict = eval(file1.read())
         self.profiles = {}
         for key, value in self.profile_dict.items():
             self.create_profile(key, value)
+        self.frame_dict = {}
 
+        #open click counts on startup
         file2 = open("click_count.txt","r")
         click_count_list = file2.read().split(" ")
         self.click_count_l = int(click_count_list[0])
         self.click_count_r = int(click_count_list[1])
 
+        #main tkinter window
         self.root = Tk()
         self.root.title("Counter")
-
         Label(self.root, text="         Count Things:         ", font="none 30 bold").pack(padx=5)
 
+        #Frame for the counter profiles
         self.frame_just_count = Frame(self.root, bd=3, relief=RIDGE)
         self.frame_just_count.pack(fill=X)
         Label(self.frame_just_count, text="Just count stuff:", font="none 11 bold").pack(anchor = "w", padx=5)
 
+        #subframe for entry and the add Button
         frame_sub = Frame(self.frame_just_count)
         frame_sub.pack(side=BOTTOM)
-
         self.entry = Entry(frame_sub, width = 30)
         self.entry.pack(side=LEFT, pady=5, padx=5, anchor="w")
-
         self.root.bind('<Return>', lambda e: self.add_profile_wrap())
-
         add = Button(frame_sub, text="Add something to count", width= 23, command=self.add_profile_wrap)
         add.pack(side=RIGHT, pady=5, padx=5, anchor="w")
 
-        self.frame_dict = {}
+        #creating frames for each counter profile
         for key in self.profile_dict.keys():
             self.add_frame(key)
 
         self.error_window = None
 
+        #Tkinter variables for checkboxes
+        self.var_start_active = IntVar()
+        self.var_auto_start = IntVar()
+        self.var_auto_export = IntVar()
+
+
+        #Frame for click counter
         self.frame_special = Frame(self.root, bd=3, relief=RIDGE)
         self.frame_special.pack(fill=X)
         Label(self.frame_special, text="Click counter:", font="none 11 bold").grid(row=0, column=0, sticky=W, padx=5)
@@ -53,18 +62,25 @@ class App:
         self.reset.grid(row=1, column=1, sticky=E, padx=5, pady=5)
         self.export_click = Button(self.frame_special, text="Export", command = self.click_export)
         self.export_click.grid(row=1, column=2, sticky=E, padx=5, pady=5)
-
         self.label_3 = Label(self.frame_special, text="LMB: " + str(self.click_count_l), font="none 11 bold")
         self.label_3.grid(row=1, column=4, sticky=E)
         self.label_4 = Label(self.frame_special, text="RMB: " + str(self.click_count_r), font="none 11 bold")
         self.label_4.grid(row=1, column=3, sticky=E)
-
-        self.start_activ = Checkbutton(self.frame_special, text="Start activated")
+        self.start_activ = Checkbutton(self.frame_special, text="Start activated", variable=self.var_start_active, command=self.set_start_active)
         self.start_activ.grid(row=2, column=0, sticky=W)
-        self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows")
+        self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows", variable=self.var_auto_start, command=self.set_auto_start)
         self.auto_start.grid(row=3, column=0, sticky=W)
-        self.auto_export = Checkbutton(self.frame_special, text="Automatic export")
+        self.auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export)
         self.auto_export.grid(row=4, column=0, sticky=W)
+
+    def set_start_active(self):
+        print(self.var_start_active.get())
+
+    def set_auto_start(self):
+        print(self.var_auto_start.get())
+
+    def set_auto_export(self):
+        print(self.var_auto_export.get())
 
     def click_counter(self):
 
