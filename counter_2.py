@@ -2,8 +2,7 @@ from tkinter import *
 from counterprofile1 import CounterProfile
 from profile_frame import ProfileFrame
 import win32api
-import datetime
-import winreg as reg
+from datetime import datetime
 import os
 import getpass
 
@@ -15,6 +14,23 @@ class App:
         self.root.title("Counter")
         Label(self.root, text="         Count Things:         ", font="none 30 bold").pack(padx=5)
 
+        #open click counts on startup
+        file2 = open("click_count.txt","r")
+        click_count_list = file2.read().split(" ")
+        self.click_count_l = int(click_count_list[0])
+        self.click_count_r = int(click_count_list[1])
+
+        #reading previous timelog
+        self.timelog()
+
+        #datetime when starting program
+        self.start_time=datetime.now()
+        self.start_time_str=self.start_time.isoformat(timespec='seconds')
+
+        file_time = open("timelog.txt", "w")
+        file_time.write(self.start_time_str)
+        file_time.close()
+
         #open profiles on startup
         file1 = open("profile_dict.txt","r")
         self.profile_dict = eval(file1.read())
@@ -22,12 +38,6 @@ class App:
         for key, value in self.profile_dict.items():
             self.create_profile(key, value)
         self.frame_dict = {}
-
-        #open click counts on startup
-        file2 = open("click_count.txt","r")
-        click_count_list = file2.read().split(" ")
-        self.click_count_l = int(click_count_list[0])
-        self.click_count_r = int(click_count_list[1])
 
         #Tkinter variables for checkboxes
         self.var_start_active = IntVar()
@@ -40,6 +50,16 @@ class App:
         self.var_start_active.set(int(file3_str[0]))
         self.var_auto_start.set(int(file3_str[1]))
         self.var_auto_export.set(int(file3_str[2]))
+        #windows autostart path and file path:
+        USER_NAME = getpass.getuser()
+        self.file_dir = os.path.dirname(os.path.realpath(__file__))
+        self.file_path = self.file_dir + "\counter_2.exe"
+        self.bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
+        #dealing with bugs:
+        if os.path.exists(self.bat_path + '\\' + "StuffCounter.bat") and self.var_auto_start.get()==0:
+            self.var_auto_start.set(1)
+        if not os.path.exists(self.bat_path + '\\' + "StuffCounter.bat") and self.var_auto_start.get()==1:
+            self.var_auto_start.set(0)
 
         #Frame for the counter profiles
         self.frame_just_count = Frame(self.root, bd=3, relief=RIDGE)
@@ -60,8 +80,6 @@ class App:
             self.add_frame(key)
 
         self.error_window = None
-
-
 
         #Frame for click counter
         self.frame_special = Frame(self.root, bd=3, relief=RIDGE)
@@ -100,12 +118,6 @@ class App:
         file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
         file3.close()
 
-        USER_NAME = getpass.getuser()
-
-        self.file_dir = os.path.dirname(os.path.realpath(__file__))
-        self.file_path = self.file_dir + "\counter_2.exe"
-        self.bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-
         if os.path.exists(self.bat_path + '\\' + "StuffCounter.bat") and self.var_auto_start.get()==0:
             os.remove(self.bat_path + '\\' + "StuffCounter.bat")
             return
@@ -117,6 +129,44 @@ class App:
         file3 = open("state.txt","w")
         file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
         file3.close()
+
+    def timelog(self):
+        file_time2 = open("timelog.txt", "r")
+        time_list = file_time2.read().split("\n")
+        start_datetime = time_list[0]
+        start_date = start_datetime.split("T")[0]
+        start_time = start_datetime.split("T")[1]
+        start_hour = start_time.split(":")[0]
+        end_datetime = time_list[1]
+        end_date = end_datetime.split("T")[0]
+        end_time = end_datetime.split("T")[1]
+        end_hour = end_time.split(":")[0]
+        print(start_time)
+        print(end_time)
+        print(start_hour)
+        print(end_hour)
+        if end_hour != start_hour:
+            exp_file = open((start_date + "_" + start_hour + "-" + end_hour + ".txt"),"w")
+            exp_file.write("LMB: "+str(self.click_count_l)+" RMB: "+str(self.click_count_r))
+            exp_file.close()
+            self.click_count_l = 0
+            self.click_count_r = 0
+            self.store_click_count()
+
+    def time_loop(self):
+        def timeloop():
+            now_time=datetime.now()
+            now_time_str=now_time.isoformat(timespec='seconds')
+            file_time = open("timelog.txt", "w")
+            file_time.write(self.start_time_str + "\n" + now_time_str)
+            file_time.close()
+            print(now_time_str)
+            if self.stop_loop:
+                return
+
+            self.root.after(1000, timeloop)
+
+        self.root.after(1000, timeloop)
 
     def click_counter(self):
 
@@ -135,17 +185,14 @@ class App:
             right = win32api.GetKeyState(0x02)
             if left != self.state_left:
                 self.state_left = left
-                print (self.state_left)
 
                 if left < 0:
-                    pass
-                else:
                     self.click_count_l += 1
                     self.label_3.configure(text="LMB: " + str(self.click_count_l))
                     self.store_click_count()
-
+                else:
+                    pass
                 if self.stop_loop:
-
                     self.click_count_l -= 1
                     self.label_3.configure(text="LMB: " + str(self.click_count_l))
                     self.store_click_count()
@@ -153,25 +200,24 @@ class App:
 
             if right != self.state_right:
                 self.state_right = right
-                print (self.state_right)
 
                 if right < 0:
-                    pass
-                else:
                     self.click_count_r += 1
                     self.label_4.configure(text="RMB: " + str(self.click_count_r))
                     self.store_click_count()
-
+                else:
+                    pass
                 if self.stop_loop:
-
                     self.click_count_r -= 1
                     self.label_4.configure(text="RMB: " + str(self.click_count_r))
                     self.store_click_count()
                     return
 
-            self.root.after(50, loop)
 
-        self.root.after(50, loop)
+            self.root.after(40, loop)
+
+        self.time_loop()
+        self.root.after(40, loop)
 
     def reset_click_counter(self):
         self.click_count_l = 0
