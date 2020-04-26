@@ -7,10 +7,6 @@ import winreg as reg
 import os
 import getpass
 
-
-
-
-
 class App:
     def __init__(self):
 
@@ -104,27 +100,18 @@ class App:
         file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
         file3.close()
 
-
         USER_NAME = getpass.getuser()
-         # in python __file__ is the instant of
-         # file path where it was executed
-         # so if it was executed from desktop,
-         # then __file__ will be
-         # c:\users\current_user\desktop
-        #path = os.path.dirname(os.path.realpath(__file__))
 
-         # name of the python file with extension
-        #filename="counter_2.py"
+        self.file_dir = os.path.dirname(os.path.realpath(__file__))
+        self.file_path = self.file_dir + "\counter_2.exe"
+        self.bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
 
-         # joins the file name to end of path address
-        #address=path+filename
+        if os.path.exists(self.bat_path + '\\' + "StuffCounter.bat") and self.var_auto_start.get()==0:
+            os.remove(self.bat_path + '\\' + "StuffCounter.bat")
+            return
 
-
-        file_path = os.path.dirname(os.path.realpath(__file__)) + "\counter_2.py"
-        bat_path = r'C:\Users\%s\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup' % USER_NAME
-        with open(bat_path + '\\' + "open.bat", "w+") as bat_file:
-            bat_file.write(r'start "" %s' % file_path)
-
+        with open(self.bat_path + '\\' + "StuffCounter.bat", "w+") as bat_file:
+            bat_file.write(r'set workingdir=%s' % self.file_dir + "\n" + r'pushd %workingdir%' + "\n" + r'start "" counter_2.exe')
 
     def set_auto_export(self):
         file3 = open("state.txt","w")
