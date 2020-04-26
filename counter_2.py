@@ -23,14 +23,6 @@ class App:
         #reading previous timelog
         self.timelog()
 
-        #datetime when starting program
-        self.start_time=datetime.now()
-        self.start_time_str=self.start_time.isoformat(timespec='seconds')
-
-        file_time = open("timelog.txt", "w")
-        file_time.write(self.start_time_str)
-        file_time.close()
-
         #open profiles on startup
         file1 = open("profile_dict.txt","r")
         self.profile_dict = eval(file1.read())
@@ -129,6 +121,7 @@ class App:
         file3 = open("state.txt","w")
         file3.write(str(self.var_start_active.get()) + str(self.var_auto_start.get()) + str(self.var_auto_export.get()))
         file3.close()
+        self.time_loop()
 
     def timelog(self):
         file_time2 = open("timelog.txt", "r")
@@ -146,7 +139,8 @@ class App:
         print(start_hour)
         print(end_hour)
         if end_hour != start_hour:
-            exp_file = open((start_date + "_" + start_hour + "-" + end_hour + ".txt"),"w")
+            start_hour_plus_one = int(start_hour) + 1
+            exp_file = open((start_date + "_" + start_hour + "-" + str(start_hour_plus_one) + ".txt"),"w")
             exp_file.write("LMB: "+str(self.click_count_l)+" RMB: "+str(self.click_count_r))
             exp_file.close()
             self.click_count_l = 0
@@ -154,19 +148,28 @@ class App:
             self.store_click_count()
 
     def time_loop(self):
-        def timeloop():
-            now_time=datetime.now()
-            now_time_str=now_time.isoformat(timespec='seconds')
+        if self.var_auto_export.get() == 1:
+            start_time = datetime.now()
+            start_time_str = start_time.isoformat(timespec='seconds')
             file_time = open("timelog.txt", "w")
-            file_time.write(self.start_time_str + "\n" + now_time_str)
+            file_time.write(start_time_str)
             file_time.close()
-            print(now_time_str)
-            if self.stop_loop:
-                return
+
+            def timeloop():
+                now_time = datetime.now()
+                now_time_str = now_time.isoformat(timespec='seconds')
+                file_time = open("timelog.txt", "w")
+                file_time.write(start_time_str + "\n" + now_time_str)
+                file_time.close()
+                print(now_time_str)
+                if self.stop_loop or self.var_auto_export.get() == 0:
+                    self.timelog()
+                    return
+
+
+                self.root.after(1000, timeloop)
 
             self.root.after(1000, timeloop)
-
-        self.root.after(1000, timeloop)
 
     def click_counter(self):
 
@@ -212,10 +215,7 @@ class App:
                     self.label_4.configure(text="RMB: " + str(self.click_count_r))
                     self.store_click_count()
                     return
-
-
             self.root.after(40, loop)
-
         self.time_loop()
         self.root.after(40, loop)
 
