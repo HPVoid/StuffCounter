@@ -86,12 +86,12 @@ class App:
         self.label_3.grid(row=1, column=3, sticky=E)
         self.label_4 = Label(self.frame_special, text="RMB: " + str(self.click_count_r), font="none 11 bold")
         self.label_4.grid(row=1, column=4, sticky=E)
-        self.start_activ = Checkbutton(self.frame_special, text="Start activated", variable=self.var_start_active, command=self.set_start_active)
-        self.start_activ.grid(row=2, column=0, sticky=W)
-        self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows", variable=self.var_auto_start, command=self.set_auto_start)
-        self.auto_start.grid(row=3, column=0, sticky=W)
-        self.auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export, state=DISABLED)
-        self.auto_export.grid(row=4, column=0, sticky=W)
+        self.cb_start_active = Checkbutton(self.frame_special, text="Start activated", variable=self.var_start_active, command=self.set_start_active)
+        self.cb_start_active.grid(row=2, column=0, sticky=W)
+        self.cb_auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows", variable=self.var_auto_start, command=self.set_auto_start)
+        self.cb_auto_start.grid(row=3, column=0, sticky=W)
+        self.cb_auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export, state=DISABLED)
+        self.cb_auto_export.grid(row=4, column=0, sticky=W)
 
         self.start_active()
 
@@ -203,12 +203,12 @@ class App:
             self.stop_loop = True
             self.click.configure(text="Activate click count", comman = self.click_counter, bg="white")
             self.var_auto_export.set(0)
-            self.auto_export.configure(state=DISABLED)
+            self.cb_auto_export.configure(state=DISABLED)
 
         self.click.configure(text="Deactivate click count", command = stop_click_counter, bg="red")
         self.state_left = win32api.GetKeyState(0x01)
         self.state_right = win32api.GetKeyState(0x02)
-        self.auto_export.configure(state=NORMAL)
+        self.cb_auto_export.configure(state=NORMAL)
 
         def loop():
             left = win32api.GetKeyState(0x01)
