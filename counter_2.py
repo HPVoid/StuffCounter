@@ -22,9 +22,6 @@ class App:
         self.click_count_l_temp = int(click_count_list[2])
         self.click_count_r_temp = int(click_count_list[3])
 
-        #reading previous timelog
-
-
         #open profiles on startup
         file1 = open("profile_dict.txt","r")
         self.profile_dict = eval(file1.read())
@@ -125,16 +122,14 @@ class App:
         file3.close()
         self.time_loop()
 
-    def timelog(self, index):
+    def auto_export(self, index):
         file_time2 = open("timelog.txt", "r")
         time_list = file_time2.read().split("\n")
-
         #time of starting the timelog:
         start_datetime = datetime.now().isoformat(timespec='seconds')
         start_date = start_datetime.split("T")[0]
         start_time = start_datetime.split("T")[1]
         start_hour = start_time.split(":")[0]
-
         #time when the last timelog was finished:
         last_end_datetime = time_list[index]
         last_end_date = last_end_datetime.split("T")[0]
@@ -142,30 +137,33 @@ class App:
         last_end_hour = last_end_time.split(":")[0]
         print(start_hour)
         print(last_end_hour)
-
-        #creating the automatic export file:
+        #creating the automatic export csv file:
         if start_hour != last_end_hour or start_date != last_end_date:
-            last_end_hour_plus_one = int(last_end_hour) + 1
-            exp_file = open((last_end_date + ".csv"),"a")
+            #creating new file with header if there is no file with this date yet:
             if not os.path.exists(last_end_date + ".csv"):
-                exp_file = open((last_end_date + ".csv"),"w")
+                exp_file = open((last_end_date + ".csv"),"a")
                 exp_file.write("hour; LMB; RMB")
+                #filling the hours before the last active hour with 0; 0:
+                for i in range(int(start_hour)):
+                    exp_file.write("\n{0}; 0; 0".format(str(i)))
                 exp_file.close()
-
+            #appending another line with the click counts of the last active hour:
             exp_file = open((last_end_date + ".csv"),"a")
             exp_file.write("\n{0}; {1}; {2}".format(last_end_hour, str(self.click_count_l_temp), str(self.click_count_r_temp)))
 
+            #for the case that the last active hour is more than one hour ago, the inactive hours in between fill be added with 0; 0:
             if last_end_date == start_date:
                 time_diff = int(start_hour) - int(last_end_hour)
                 for i in range(time_diff)[1:]:
                     inactive_hours = int(last_end_hour) + i
                     exp_file.write("\n{0}; 0; 0".format(str(inactive_hours)))
+            #in case one (or more) days have passed since the last active hour, the csv.file for the last active day will be filled up to hour 23 with 0; 0:
             else:
                 time_diff = 24 - int(last_end_hour)
                 for i in range(time_diff)[1:]:
                     inactive_hours = int(last_end_hour) + i
                     exp_file.write("\n{0}; 0; 0".format(str(inactive_hours)))
-
+                #also a new file for today is being created with 0; 0 until the time right now (is if not os.path.exists(start_date + ".csv") actually necessary in this case???)
                 if not os.path.exists(start_date + ".csv"):
                     exp_file_today = open((start_date + ".csv"),"a")
                     exp_file_today.write("hour; LMB; RMB")
@@ -173,25 +171,23 @@ class App:
                         exp_file_today.write("\n{0}; 0; 0".format(str(i)))
                     exp_file_today.close()
 
-
-
             exp_file.close()
             self.reset_click_counter_temp()
             self.start_datetime = datetime.now().isoformat(timespec='seconds')
 
     def time_loop(self):
         if self.var_auto_export.get() == 1:
-            self.timelog(1)
+            self.auto_export(1)
             self.start_datetime = datetime.now().isoformat(timespec='seconds')
             def timeloop():
                 now_datetime = datetime.now().isoformat(timespec='seconds')
                 file_time = open("timelog.txt", "w")
                 file_time.write(self.start_datetime + "\n" + now_datetime)
                 file_time.close()
-                self.timelog(0)
+                self.auto_export(0)
                 print(now_datetime)
                 if self.var_auto_export.get() == 0:
-                    self.timelog(0)
+                    self.auto_export(0)
                     self.reset_click_counter_temp()
                     return
 
