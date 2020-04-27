@@ -144,14 +144,37 @@ class App:
         print(last_end_hour)
 
         #creating the automatic export file:
-        if start_hour != last_end_hour:
-            #exp_dict = {"0-1":0, "1-2": 0, "2-3":0, "3-4":0, "4-5":0, "5-6":0, "6-7":0, "7-8":0, "8-9":0, "9-10":0, "10-11":0, "11-12":0, "12-13":0, "13-14":0, "14-15", "15-16":0, "16-17":0, "17-18":0, "18-19":0, "19-20":0, "20-21":0, "21-22":0, "22-23":0, "23-24":0}
+        if start_hour != last_end_hour or start_date != last_end_date:
             last_end_hour_plus_one = int(last_end_hour) + 1
-            #exp_file = open((last_end_date + "_" + last_end_hour + "-" + str(last_end_hour_plus_one) + ".txt"),"r")
-            #exp_dict = eval(exp_file.read())
-            exp_file = open((last_end_date + "_" + last_end_hour + "-" + str(last_end_hour_plus_one) + ".txt"),"w")
-            #exp_dict
-            exp_file.write("LMB: "+str(self.click_count_l_temp)+" RMB: "+str(self.click_count_r_temp))
+            exp_file = open((last_end_date + ".csv"),"a")
+            if not os.path.exists(last_end_date + ".csv"):
+                exp_file = open((last_end_date + ".csv"),"w")
+                exp_file.write("hour; LMB; RMB")
+                exp_file.close()
+
+            exp_file = open((last_end_date + ".csv"),"a")
+            exp_file.write("\n{0}; {1}; {2}".format(last_end_hour, str(self.click_count_l_temp), str(self.click_count_r_temp)))
+
+            if last_end_date == start_date:
+                time_diff = int(start_hour) - int(last_end_hour)
+                for i in range(time_diff)[1:]:
+                    inactive_hours = int(last_end_hour) + i
+                    exp_file.write("\n{0}; 0; 0".format(str(inactive_hours)))
+            else:
+                time_diff = 24 - int(last_end_hour)
+                for i in range(time_diff)[1:]:
+                    inactive_hours = int(last_end_hour) + i
+                    exp_file.write("\n{0}; 0; 0".format(str(inactive_hours)))
+
+                if not os.path.exists(start_date + ".csv"):
+                    exp_file_today = open((start_date + ".csv"),"a")
+                    exp_file_today.write("hour; LMB; RMB")
+                    for i in range(int(start_hour)):
+                        exp_file_today.write("\n{0}; 0; 0".format(str(i)))
+                    exp_file_today.close()
+
+
+
             exp_file.close()
             self.reset_click_counter_temp()
             self.start_datetime = datetime.now().isoformat(timespec='seconds')
