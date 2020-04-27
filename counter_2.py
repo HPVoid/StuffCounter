@@ -19,9 +19,11 @@ class App:
         click_count_list = file2.read().split(" ")
         self.click_count_l = int(click_count_list[0])
         self.click_count_r = int(click_count_list[1])
+        self.click_count_l_temp = int(click_count_list[2])
+        self.click_count_r_temp = int(click_count_list[3])
 
         #reading previous timelog
-        self.timelog()
+
 
         #open profiles on startup
         file1 = open("profile_dict.txt","r")
@@ -91,7 +93,7 @@ class App:
         self.start_activ.grid(row=2, column=0, sticky=W)
         self.auto_start = Checkbutton(self.frame_special, text="Add to autostart on Windows", variable=self.var_auto_start, command=self.set_auto_start)
         self.auto_start.grid(row=3, column=0, sticky=W)
-        self.auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export)
+        self.auto_export = Checkbutton(self.frame_special, text="Automatic export", variable=self.var_auto_export, command=self.set_auto_export, state=DISABLED)
         self.auto_export.grid(row=4, column=0, sticky=W)
 
         self.start_active()
@@ -123,49 +125,52 @@ class App:
         file3.close()
         self.time_loop()
 
-    def timelog(self):
+    def timelog(self, index):
         file_time2 = open("timelog.txt", "r")
         time_list = file_time2.read().split("\n")
-        start_datetime = time_list[0]
+
+        #time of starting the timelog:
+        start_datetime = datetime.now().isoformat(timespec='seconds')
         start_date = start_datetime.split("T")[0]
         start_time = start_datetime.split("T")[1]
         start_hour = start_time.split(":")[0]
-        end_datetime = time_list[1]
-        end_date = end_datetime.split("T")[0]
-        end_time = end_datetime.split("T")[1]
-        end_hour = end_time.split(":")[0]
-        print(start_time)
-        print(end_time)
+
+        #time when the last timelog was finished:
+        last_end_datetime = time_list[index]
+        last_end_date = last_end_datetime.split("T")[0]
+        last_end_time = last_end_datetime.split("T")[1]
+        last_end_hour = last_end_time.split(":")[0]
         print(start_hour)
-        print(end_hour)
-        if end_hour != start_hour:
-            start_hour_plus_one = int(start_hour) + 1
-            exp_file = open((start_date + "_" + start_hour + "-" + str(start_hour_plus_one) + ".txt"),"w")
-            exp_file.write("LMB: "+str(self.click_count_l)+" RMB: "+str(self.click_count_r))
+        print(last_end_hour)
+
+        #creating the automatic export file:
+        if start_hour != last_end_hour:
+            #exp_dict = {"0-1":0, "1-2": 0, "2-3":0, "3-4":0, "4-5":0, "5-6":0, "6-7":0, "7-8":0, "8-9":0, "9-10":0, "10-11":0, "11-12":0, "12-13":0, "13-14":0, "14-15", "15-16":0, "16-17":0, "17-18":0, "18-19":0, "19-20":0, "20-21":0, "21-22":0, "22-23":0, "23-24":0}
+            last_end_hour_plus_one = int(last_end_hour) + 1
+            #exp_file = open((last_end_date + "_" + last_end_hour + "-" + str(last_end_hour_plus_one) + ".txt"),"r")
+            #exp_dict = eval(exp_file.read())
+            exp_file = open((last_end_date + "_" + last_end_hour + "-" + str(last_end_hour_plus_one) + ".txt"),"w")
+            #exp_dict
+            exp_file.write("LMB: "+str(self.click_count_l_temp)+" RMB: "+str(self.click_count_r_temp))
             exp_file.close()
-            self.click_count_l = 0
-            self.click_count_r = 0
-            self.store_click_count()
+            self.reset_click_counter_temp()
+            self.start_datetime = datetime.now().isoformat(timespec='seconds')
 
     def time_loop(self):
         if self.var_auto_export.get() == 1:
-            start_time = datetime.now()
-            start_time_str = start_time.isoformat(timespec='seconds')
-            file_time = open("timelog.txt", "w")
-            file_time.write(start_time_str)
-            file_time.close()
-
+            self.timelog(1)
+            self.start_datetime = datetime.now().isoformat(timespec='seconds')
             def timeloop():
-                now_time = datetime.now()
-                now_time_str = now_time.isoformat(timespec='seconds')
+                now_datetime = datetime.now().isoformat(timespec='seconds')
                 file_time = open("timelog.txt", "w")
-                file_time.write(start_time_str + "\n" + now_time_str)
+                file_time.write(self.start_datetime + "\n" + now_datetime)
                 file_time.close()
-                print(now_time_str)
-                if self.stop_loop or self.var_auto_export.get() == 0:
-                    self.timelog()
+                self.timelog(0)
+                print(now_datetime)
+                if self.var_auto_export.get() == 0:
+                    self.timelog(0)
+                    self.reset_click_counter_temp()
                     return
-
 
                 self.root.after(1000, timeloop)
 
@@ -178,10 +183,13 @@ class App:
             self.stop_loop
             self.stop_loop = True
             self.click.configure(text="Activate click count", comman = self.click_counter, bg="white")
+            self.var_auto_export.set(0)
+            self.auto_export.configure(state=DISABLED)
 
         self.click.configure(text="Deactivate click count", command = stop_click_counter, bg="red")
         self.state_left = win32api.GetKeyState(0x01)
         self.state_right = win32api.GetKeyState(0x02)
+        self.auto_export.configure(state=NORMAL)
 
         def loop():
             left = win32api.GetKeyState(0x01)
@@ -191,12 +199,14 @@ class App:
 
                 if left < 0:
                     self.click_count_l += 1
+                    self.click_count_l_temp += 1
                     self.label_3.configure(text="LMB: " + str(self.click_count_l))
                     self.store_click_count()
                 else:
                     pass
                 if self.stop_loop:
                     self.click_count_l -= 1
+                    self.click_count_l_temp -= 1
                     self.label_3.configure(text="LMB: " + str(self.click_count_l))
                     self.store_click_count()
                     return
@@ -206,12 +216,14 @@ class App:
 
                 if right < 0:
                     self.click_count_r += 1
+                    self.click_count_r_temp += 1
                     self.label_4.configure(text="RMB: " + str(self.click_count_r))
                     self.store_click_count()
                 else:
                     pass
                 if self.stop_loop:
                     self.click_count_r -= 1
+                    self.click_count_r_temp -= 1
                     self.label_4.configure(text="RMB: " + str(self.click_count_r))
                     self.store_click_count()
                     return
@@ -224,12 +236,17 @@ class App:
         self.label_3.configure(text="LMB: " + str(self.click_count_l))
         self.click_count_r = 0
         self.label_4.configure(text="RMB: " + str(self.click_count_r))
-        self.store_click_count()
+        self.reset_click_counter_temp()
         self.sure.destroy()
+
+    def reset_click_counter_temp(self):
+        self.click_count_l_temp = 0
+        self.click_count_r_temp = 0
+        self.store_click_count()
 
     def store_click_count(self):
         file2 = open("click_count.txt","w")
-        file2.write(str(self.click_count_l) + " " + str(self.click_count_r))
+        file2.write(str(self.click_count_l) + " " + str(self.click_count_r) + " " + str(self.click_count_l_temp) + " " + str(self.click_count_r_temp))
         file2.close()
 
     def click_export(self):
