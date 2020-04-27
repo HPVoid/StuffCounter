@@ -173,16 +173,16 @@ class App:
 
             exp_file.close()
             self.reset_click_counter_temp()
-            self.start_datetime = datetime.now().isoformat(timespec='seconds')
+            self.new_start_datetime = datetime.now().isoformat(timespec='seconds')
 
     def time_loop(self):
         if self.var_auto_export.get() == 1:
             self.auto_export(1)
-            self.start_datetime = datetime.now().isoformat(timespec='seconds')
+            self.new_start_datetime = datetime.now().isoformat(timespec='seconds')
             def timeloop():
                 now_datetime = datetime.now().isoformat(timespec='seconds')
                 file_time = open("timelog.txt", "w")
-                file_time.write(self.start_datetime + "\n" + now_datetime)
+                file_time.write(self.new_start_datetime + "\n" + now_datetime)
                 file_time.close()
                 self.auto_export(0)
                 print(now_datetime)
